@@ -34,7 +34,7 @@ def prepare_middlebury_tree_import(
             'species:en': nameFields['PlantsComm']
         }
         xNAD, yNAD = shapeRecord.shape.points[0]
-        lon, lat = transformer.transform(xNAD / 3.28, yNAD / 3.28)
+        lon, lat = transformer.transform(xNAD, yNAD)
         writer.add_node(Node(
             id = i,
             location = (lon, lat),
