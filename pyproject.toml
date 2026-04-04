@@ -8,6 +8,9 @@ authors = [
 ]
 dynamic = ["version"]
 dependencies = [
+  "osmium",
+  "pyproj",
+  "pyshp",
   "typer",
   "typing_extensions"
 ]
