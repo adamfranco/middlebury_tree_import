@@ -1,0 +1,16 @@
+[project]
+name = "middlebury_tree_import"
+description = "A CLI program to [repare an OSM import file from a GEOJSON export of the Middlebury College Tree database."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+authors = [
+  {name = "Adam Franco"}
+]
+dynamic = ["version"]
+dependencies = [
+  "typer",
+  "typing_extensions"
+]
+
+[project.scripts]
+prepare_middlebury_tree_import = "middlebury_tree_import.cli:app"
