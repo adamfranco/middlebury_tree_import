@@ -6,6 +6,12 @@ project.
 
 # Installation
 
+## Prerequisites
+* Install [GDAL](https://gdal.org/en/stable/) on your system.
+   * OS X - MacPorts: `sudo port install gdal`
+   * OS X - Homebrew: `sudo brew install gdal`
+
+## Normal installation
 This program can be installed for normal usage with pip and pipx:
 
 ```

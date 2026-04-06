@@ -1,3 +1,4 @@
+from osgeo import ogr
 from osmium import SimpleWriter
 from osmium.osm.mutable import Node
 from pprint import pp
@@ -8,8 +9,9 @@ from pathlib import Path
 from typing_extensions import Annotated
 
 def prepare_middlebury_tree_import(
-    trees: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the input shapefile. Example: campus-trees.zip OR campus-trees.shp")],
-    names: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the input shapefile. Example: campus-trees.zip OR campus-trees.shp")],
+    trees: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the input shapefile. Example: campus-trees.shp")],
+    names: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the plant names shapefile. Example: PlantNames.dbf")],
+    visits: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the visits shapefile. Example: TreeVisits.dbf")],
     output: Annotated[Path, typer.Option(writable=True, dir_okay=False, file_okay=True, help="Path of the output .osm file. Example: campus-trees.osm")]
 ):
     writer = SimpleWriter(output, overwrite=True)
@@ -17,6 +19,11 @@ def prepare_middlebury_tree_import(
     # Load all Plant Names for easier lookup.
     namesDict = {record['PlantPlant']: record.as_dict() for record in shapefile.Reader(names).iterRecords() }
     commonNamesDict = {record['PlantsComm']: record.as_dict() for record in shapefile.Reader(names).iterRecords() }
+
+    # Load visits
+    # allVisits = {record['PlantPlant']: record.as_dict() for record in shapefile.Reader(names).iterRecords() }
+    ds = ogr.Open(visits)
+    visitsLayer = ds.GetLayer()
 
     # Initialize the transformer
     # EPSG:32145 = NAD83 / Vermont
@@ -52,10 +59,25 @@ def prepare_middlebury_tree_import(
             tags['taxon:en'] = nameFields['PlantsComm']
             tags['taxon:genus'] = nameFields['GenusLatin']
             tags['taxon:cultivar'] = nameFields['PlantsCult']
-        if 'DBH' in treeFields:
-            tags['diameter'] = f"{treeFields['DBH']}\""
-        if 'DBH' in treeFields:
-            tags['diameter'] = f"{treeFields['DBH']}\""
+
+        # Find the latest visit.
+        visitsLayer.SetAttributeFilter(f"FK_GUID = '{treeFields['GlobalID']}'")
+        latestVisit = None
+        for visit in visitsLayer:
+            if latestVisit is None or visit['Last_Inspe'] > latestVisit['Last_Inspe']:
+                latestVisit = visit
+
+        if latestVisit:
+            diameter = latestVisit.GetField('DBH')
+            if diameter and diameter > 0:
+                tags['diameter'] = f"{diameter}\""
+            height = latestVisit.GetField('Height')
+            if height and height > 0:
+                tags['height'] = f"{height}\'"
+            diameter_crown = latestVisit.GetField('Spread')
+            if diameter_crown and diameter_crown > 0:
+                tags['diameter_crown'] = f"{diameter_crown}\'"
+            tags['check_date'] = latestVisit.GetField('Last_Inspe')
 
         pp(tags)
 
