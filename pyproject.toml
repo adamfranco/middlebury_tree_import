@@ -9,7 +9,9 @@ authors = [
 dynamic = ["version"]
 dependencies = [
   "gdal",
+  "lxml",
   "osmium",
+  "pandas",
   "pyproj",
   "pyshp",
   "typer",

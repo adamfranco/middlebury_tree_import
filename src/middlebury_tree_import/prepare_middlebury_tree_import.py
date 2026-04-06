@@ -1,6 +1,7 @@
 from osgeo import ogr
 from osmium import SimpleWriter
 from osmium.osm.mutable import Node
+import pandas
 from pprint import pp
 from pyproj import Transformer
 import shapefile
@@ -23,6 +24,9 @@ def prepare_middlebury_tree_import(
     # Load visits
     ds = ogr.Open(visits)
     visitsLayer = ds.GetLayer()
+
+    # Load tree details from the OSM wiki.
+    wikiSpecies = pandas.read_html('https://wiki.openstreetmap.org/wiki/Tag:natural%3Dtree/List_of_Species')[0]
 
     # Initialize the transformer
     # EPSG:32145 = NAD83 / Vermont
@@ -59,6 +63,21 @@ def prepare_middlebury_tree_import(
             tags['taxon:genus'] = nameFields['GenusLatin']
             if nameFields['PlantsCult']:
                 tags['taxon:cultivar'] = nameFields['PlantsCult']
+
+        # Add additional data from the
+        if 'species' in tags:
+            wikiDetails = wikiSpecies[wikiSpecies["species"] == tags['species']]
+            # If we can find details of the species, use those.
+            if wikiDetails.size > 0:
+                tags['species:wikidata'] = wikiDetails['species:wikidata'].item()
+                tags['leaf_cycle'] = wikiDetails['leaf_cycle=*'].item()
+                tags['leaf_type'] = wikiDetails['leaf_type=*'].item()
+            # Otherwise, try to get at least the leaf_type & leaf_cycle from the genus.
+            else:
+                wikiDetails = wikiSpecies[wikiSpecies["genus"] == tags['genus']]
+                if wikiDetails.size > 0:
+                    tags['leaf_cycle'] = wikiDetails.iloc[:1]['leaf_cycle=*'].item()
+                    tags['leaf_type'] = wikiDetails.iloc[:1]['leaf_type=*'].item()
 
         # Find the latest visit.
         visitsLayer.SetAttributeFilter(f"FK_GUID = '{treeFields['GlobalID']}'")
