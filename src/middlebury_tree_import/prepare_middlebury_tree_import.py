@@ -58,7 +58,8 @@ def prepare_middlebury_tree_import(
             tags['taxon'] = nameFields['LatinName']
             tags['taxon:en'] = nameFields['PlantsComm']
             tags['taxon:genus'] = nameFields['GenusLatin']
-            tags['taxon:cultivar'] = nameFields['PlantsCult']
+            if nameFields['PlantsCult']:
+                tags['taxon:cultivar'] = nameFields['PlantsCult']
 
         # Find the latest visit.
         visitsLayer.SetAttributeFilter(f"FK_GUID = '{treeFields['GlobalID']}'")
