@@ -42,5 +42,17 @@ prepare_middlebury_tree_import --help
 
 # Usage
 
-Download a GEOJSON version of the Middlebury College Tree database
+1. Download a GEOJSON version of the Middlebury College Tree database
 [from ArcGIS](https://middlebury.maps.arcgis.com/home/item.html?id=8549539c40834bb8a08326c7a87b1696).
+
+2. Unzip the Shapefile package
+
+3. Prepare the OSM file:
+   ```
+   prepare_middlebury_tree_import \
+    --trees campus_trees/campus_trees.shp \
+    --names campus_trees/PlantNames.dbf \
+    --visits campus_trees/TreeVisits.dbf \
+    --memorial campus_trees/MemorialTrees.dbf \
+    --output campus_trees.osm
+   ```

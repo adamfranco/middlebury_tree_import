@@ -13,6 +13,7 @@ def prepare_middlebury_tree_import(
     trees: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the input shapefile. Example: campus-trees.shp")],
     names: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the plant names shapefile. Example: PlantNames.dbf")],
     visits: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the visits shapefile. Example: TreeVisits.dbf")],
+    memorial: Annotated[Path, typer.Option(exists=True, readable=True, dir_okay=False, file_okay=True, help="Path to the memorial shapefile. Example: MemorialTrees.dbf")],
     output: Annotated[Path, typer.Option(writable=True, dir_okay=False, file_okay=True, help="Path of the output .osm file. Example: campus-trees.osm")]
 ):
     writer = SimpleWriter(output, overwrite=True)
@@ -23,8 +24,11 @@ def prepare_middlebury_tree_import(
 
     # Load visits
     ogr.UseExceptions()
-    ds = ogr.Open(visits)
-    visitsLayer = ds.GetLayer()
+    visitsData = ogr.Open(visits)
+    visitsLayer = visitsData.GetLayer()
+    # Load Memorial information
+    memorialData = ogr.Open(memorial)
+    memorialLayer = memorialData.GetLayer()
 
     # Load tree details from the OSM wiki.
     wikiSpecies = pandas.read_html('https://wiki.openstreetmap.org/wiki/Tag:natural%3Dtree/List_of_Species')[0]
@@ -57,12 +61,15 @@ def prepare_middlebury_tree_import(
 
         if nameFields:
             # pp(nameFields)
-            tags['species'] = f"{nameFields['GenusLatin']} {nameFields['PlantsSpec']}"
+            genus = nameFields['GenusLatin']
+            species = nameFields['PlantsSpec']
+            latinFull = nameFields['LatinName']
+            tags['species'] = f"{genus} {species}"
             tags['species:en'] = nameFields['PlantsComm']
-            tags['genus'] = nameFields['GenusLatin']
-            tags['taxon'] = nameFields['LatinName']
+            tags['genus'] = genus
+            tags['taxon'] = latinFull
             tags['taxon:en'] = nameFields['PlantsComm']
-            tags['taxon:genus'] = nameFields['GenusLatin']
+            tags['taxon:genus'] = genus
             if nameFields['PlantsCult']:
                 tags['taxon:cultivar'] = nameFields['PlantsCult']
 
@@ -113,6 +120,17 @@ def prepare_middlebury_tree_import(
                 tags['diameter_crown'] = f"{diameter_crown}\'"
             tags['check_date'] = latestVisit.GetField('Last_Inspe')
 
+        # Find the latest visit.
+        memorialLayer.SetAttributeFilter(f"Guid = '{treeFields['GlobalID']}'")
+        for memorial in memorialLayer:
+            memorialTitle = memorial.GetField('MemorialTi')
+            if memorialTitle:
+                tags['memorial'] = 'tree'
+                tags['denotation'] = 'memorial'
+                tags['subject'] = memorialTitle
+            memorialText = memorial.GetField('MemorialTe')
+            if memorialText:
+                tags['inscription'] = memorialText
         # pp(tags)
 
         xNAD, yNAD = shapeRecord.shape.points[0]
