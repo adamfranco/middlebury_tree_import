@@ -22,6 +22,7 @@ def prepare_middlebury_tree_import(
     commonNamesDict = {record['PlantsComm']: record.as_dict() for record in shapefile.Reader(names).iterRecords() }
 
     # Load visits
+    ogr.UseExceptions()
     ds = ogr.Open(visits)
     visitsLayer = ds.GetLayer()
 
