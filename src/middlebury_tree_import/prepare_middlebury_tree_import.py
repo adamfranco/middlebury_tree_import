@@ -35,6 +35,7 @@ def prepare_middlebury_tree_import(
 
     sf = shapefile.Reader(trees)
     i=0
+    missingWikidata = {}
     for shapeRecord in sf.shapeRecords():
         i=i-1
         treeRec = shapeRecord.record
@@ -69,15 +70,28 @@ def prepare_middlebury_tree_import(
             wikiDetails = wikiSpecies[wikiSpecies["species"] == tags['species']]
             # If we can find details of the species, use those.
             if wikiDetails.size > 0:
-                tags['species:wikidata'] = wikiDetails['species:wikidata'].item()
-                tags['leaf_cycle'] = wikiDetails['leaf_cycle=*'].item()
-                tags['leaf_type'] = wikiDetails['leaf_type=*'].item()
+                wikidata = wikiDetails['species:wikidata'].item()
+                if wikidata and isinstance(wikidata, str):
+                    tags['species:wikidata'] = wikidata
+                leaf_cycle = wikiDetails['leaf_cycle=*'].item()
+                if leaf_cycle and isinstance(leaf_cycle, str):
+                    tags['leaf_cycle'] = leaf_cycle
+                leaf_type = wikiDetails['leaf_type=*'].item()
+                if leaf_type and isinstance(leaf_type, str):
+                    tags['leaf_type'] = leaf_type
             # Otherwise, try to get at least the leaf_type & leaf_cycle from the genus.
             else:
                 wikiDetails = wikiSpecies[wikiSpecies["genus"] == tags['genus']]
                 if wikiDetails.size > 0:
-                    tags['leaf_cycle'] = wikiDetails.iloc[:1]['leaf_cycle=*'].item()
-                    tags['leaf_type'] = wikiDetails.iloc[:1]['leaf_type=*'].item()
+                    leaf_cycle = wikiDetails.iloc[:1]['leaf_cycle=*'].item()
+                    if leaf_cycle and isinstance(leaf_cycle, str):
+                        tags['leaf_cycle'] = leaf_cycle
+                    leaf_type = wikiDetails.iloc[:1]['leaf_type=*'].item()
+                    if leaf_type and isinstance(leaf_type, str):
+                        tags['leaf_type'] = leaf_type
+                    missingWikidata[tags['species']] = f"Only genus matched for {tags['species']} ({tags['species:en']})"
+                else:
+                    missingWikidata[tags['species']] = f"No species or genus matches for {tags['species']} ({tags['species:en']})"
 
         # Find the latest visit.
         visitsLayer.SetAttributeFilter(f"FK_GUID = '{treeFields['GlobalID']}'")
@@ -109,3 +123,5 @@ def prepare_middlebury_tree_import(
         ))
         # if i > 5:
         #     exit()
+
+    pp(sorted(missingWikidata.items()))
