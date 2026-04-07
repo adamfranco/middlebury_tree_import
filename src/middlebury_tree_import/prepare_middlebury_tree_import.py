@@ -41,8 +41,8 @@ def prepare_middlebury_tree_import(
         i=i-1
         treeRec = shapeRecord.record
         treeFields = treeRec.as_dict()
-        print ("\n")
-        pp(treeFields)
+        # print ("\n")
+        # pp(treeFields)
         tags = {
             'natural': 'tree',
             'species:en': treeFields['COMMON_NAM'],
@@ -56,7 +56,7 @@ def prepare_middlebury_tree_import(
             nameFields = commonNamesDict[treeFields['COMMON_NAM']]
 
         if nameFields:
-            pp(nameFields)
+            # pp(nameFields)
             tags['species'] = f"{nameFields['GenusLatin']} {nameFields['PlantsSpec']}"
             tags['species:en'] = nameFields['PlantsComm']
             tags['genus'] = nameFields['GenusLatin']
@@ -113,7 +113,7 @@ def prepare_middlebury_tree_import(
                 tags['diameter_crown'] = f"{diameter_crown}\'"
             tags['check_date'] = latestVisit.GetField('Last_Inspe')
 
-        pp(tags)
+        # pp(tags)
 
         xNAD, yNAD = shapeRecord.shape.points[0]
         lon, lat = transformer.transform(xNAD, yNAD)
