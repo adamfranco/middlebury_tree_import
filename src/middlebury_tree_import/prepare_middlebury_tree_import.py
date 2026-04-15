@@ -69,6 +69,7 @@ def prepare_middlebury_tree_import(
             else:
                 cultivar = None
 
+            genus, species, latinFull, cultivar = update_taxonomy(genus, species, latinFull, cultivar)
             tags['species'] = f"{genus} {species}"
             tags['species:en'] = nameFields['PlantsComm']
             tags['genus'] = genus
@@ -162,3 +163,26 @@ def fix_taxonomy_spellings(name):
 
     return name
 
+def update_taxonomy(genus, species, latinFull, cultivar):
+    if 'Acer ginnala' in latinFull:
+        species = species.replace('ginnala', 'tataricum')
+        latinFull = latinFull.replace('ginnala', 'tataricum subsp. ginnala')
+
+    if 'Betula jacquemontii' in latinFull:
+        species = species.replace('jacquemontii', 'utilis')
+        latinFull = latinFull.replace('jacquemontii', 'utilis subsp. jacquemontii')
+
+    if "Chamaecyparis nootkatensis" in latinFull:
+        genus = 'Callitropsis'
+        species = species.replace('Chamaecyparis', 'Callitropsis')
+        latinFull = latinFull.replace('Chamaecyparis', 'Callitropsis')
+
+    if "Gymnocladus dioica" in latinFull:
+        species = species.replace('dioica', 'dioicus')
+        latinFull = latinFull.replace('dioica', 'dioicus')
+
+    if "Quercus prinus" in latinFull:
+        species = species.replace('prinus', 'michauxii')
+        latinFull = latinFull.replace('prinus', 'michauxii')
+
+    return (genus, species, latinFull, cultivar)
