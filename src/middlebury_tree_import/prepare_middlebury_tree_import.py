@@ -61,9 +61,14 @@ def prepare_middlebury_tree_import(
 
         if nameFields:
             # pp(nameFields)
-            genus = nameFields['GenusLatin']
-            species = nameFields['PlantsSpec']
-            latinFull = nameFields['LatinName']
+            genus = fix_taxonomy_spellings(nameFields['GenusLatin'])
+            species = fix_taxonomy_spellings(nameFields['PlantsSpec'])
+            latinFull = fix_taxonomy_spellings(nameFields['LatinName'])
+            if nameFields['PlantsCult']:
+                cultivar = fix_taxonomy_spellings(nameFields['PlantsCult'])
+            else:
+                cultivar = None
+
             tags['species'] = f"{genus} {species}"
             tags['species:en'] = nameFields['PlantsComm']
             tags['genus'] = genus
@@ -71,7 +76,7 @@ def prepare_middlebury_tree_import(
             tags['taxon:en'] = nameFields['PlantsComm']
             tags['taxon:genus'] = genus
             if nameFields['PlantsCult']:
-                tags['taxon:cultivar'] = nameFields['PlantsCult']
+                tags['taxon:cultivar'] = cultivar
 
         # Add additional data from the
         if 'species' in tags:
@@ -144,3 +149,16 @@ def prepare_middlebury_tree_import(
         #     exit()
 
     pp(sorted(missingWikidata.items()))
+
+def fix_taxonomy_spellings(name):
+    name = name.replace('psuedoacacia', 'pseudoacacia')
+    name = name.replace('pseudocamilla', 'pseudocamellia')
+    name = name.replace('psuedocamilla', 'pseudocamellia')
+    name = name.replace('Elaegnus', 'Elaeagnus')
+    name = name.replace('platinoides', 'platanoides')
+    name = name.replace('lacinosa', 'laciniosa')
+    name = name.replace('flexis', 'flexilis')
+    name = name.replace('nookatensis', 'nootkatensis')
+
+    return name
+
