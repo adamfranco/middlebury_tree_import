@@ -7,6 +7,7 @@ project.
 # Installation
 
 ## Prerequisites
+* Python 3.14 or later
 * Install [GDAL](https://gdal.org/en/stable/) on your system.
    * OS X - MacPorts: `sudo port install gdal`
    * OS X - Homebrew: `sudo brew install gdal`
@@ -16,7 +17,7 @@ This program can be installed for normal usage with pip and pipx:
 
 ```
 pip install pipx
-pipx install git+https://github.com/adamfranco/middlebury-tree-import.git
+pipx install --python python3.14 git+https://github.com/adamfranco/middlebury-tree-import.git
 ```
 
 The you can run the program with:
@@ -32,7 +33,7 @@ This program can be installed for normal usage with pip and pipx:
 pip install pipx
 git clone git@github.com:adamfranco/middlebury-tree-import.git
 cd middlebury-tree-import
-pipx install --editable .
+pipx install --editable --python python3.14 .
 ```
 
 The you can run the program with:

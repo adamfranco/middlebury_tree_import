@@ -1,3 +1,4 @@
+import datetime
 from osgeo import ogr
 from osmium import SimpleWriter
 from osmium.osm.mutable import Node
@@ -124,7 +125,8 @@ def prepare_middlebury_tree_import(
             diameter_crown = latestVisit.GetField('Spread')
             if diameter_crown and diameter_crown > 0:
                 tags['diameter_crown'] = f"{diameter_crown}\'"
-            tags['check_date'] = latestVisit.GetField('Last_Inspe')
+            checkDate =  datetime.date.strptime(latestVisit.GetField('Last_Inspe'), '%Y/%m/%d')
+            tags['check_date'] = checkDate.strftime('%Y-%m-%d')
 
         # Find the latest visit.
         memorialLayer.SetAttributeFilter(f"Guid = '{treeFields['GlobalID']}'")
